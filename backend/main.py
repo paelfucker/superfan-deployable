@@ -8,7 +8,7 @@ from pydub import AudioSegment
 import pathlib
 import tempfile
 
-from azure_speech_to_text import SpeechToTextManager
+from whisper_transcription import SpeechToTextManager
 from openai_chat import OpenAiManager
 from eleven_labs import ElevenLabsManager
 
