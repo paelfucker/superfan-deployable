@@ -138,7 +138,7 @@ useEffect(() => {
     mediaRecorder.onstop = async () => {
       const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
       const formData = new FormData();
-      formData.append("file", audioBlob, "recording.webm");
+      formData.append("audio_file", audioBlob, "recording.webm");
 
       const response = await axios.post("/ask", formData, {
         headers: { "Content-Type": "multipart/form-data" },
