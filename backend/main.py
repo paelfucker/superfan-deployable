@@ -73,7 +73,7 @@ async def ask_character(audio_file: UploadFile, language: str = Form("en")):
         raw_path = tmp.name
 
     # Transcribe
-    transcription = stt_manager.transcribe_audio(raw_path, language=language)
+    transcription = stt_manager.speechtotext_from_file(raw_path)
 
     # Get character response
     if not openai_manager.chat_history:
