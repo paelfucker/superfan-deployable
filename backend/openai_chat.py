@@ -1,8 +1,7 @@
 import tiktoken
 from rich import print
 from config import OPENAI_API_KEY
-from openai import OpenAI  # <-- also make sure this is added if not already
-
+from openai import OpenAI  # ✅ confirmed this import is present
 
 
 def num_tokens_from_messages(messages, model='gpt-4o'):
@@ -29,6 +28,10 @@ class OpenAiManager:
     def __init__(self):
         self.chat_history = []
         self.client = OpenAI(api_key=OPENAI_API_KEY)
+
+    def append_system_message(self, message):
+        """Appends a system message to the chat history."""
+        self.chat_history.append(message)
 
     def chat(self, prompt=""):
         if not prompt:

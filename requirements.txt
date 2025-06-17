@@ -6,3 +6,5 @@ openai
 python-multipart
 aiofiles
 azure-cognitiveservices-speech
+tiktoken
+elevenlabs
