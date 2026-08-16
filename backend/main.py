@@ -1,9 +1,8 @@
 import os
 from fastapi import FastAPI, UploadFile, Form
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydub import AudioSegment
 import pathlib
 import tempfile
@@ -17,8 +16,6 @@ ffprobe_path = os.path.join(os.getcwd(), "backend", "bin", "ffprobe")
 AudioSegment.converter = ffmpeg_path
 AudioSegment.ffprobe = ffprobe_path
 
-
-# Inject Superfan personality prompt
 SYSTEM_MESSAGE = {
     "role": "system",
     "content": """
@@ -48,14 +45,11 @@ Okay, let the conversation begin!
 """
 }
 
-
-# ==== INIT ====
 app = FastAPI()
 openai_manager = OpenAiManager()
 stt_manager = SpeechToTextManager()
 tts_manager = ElevenLabsManager()
 
-# ==== CORS ====
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -64,31 +58,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ==== API ENDPOINT ====
 @app.post("/ask")
 async def ask_character(audio_file: UploadFile, language: str = Form("en")):
-    # Save temp file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
         tmp.write(await audio_file.read())
         raw_path = tmp.name
 
-    # Transcribe
-    transcription = stt_manager.transcribe_audio(raw_path, language)
+    try:
+        transcription = stt_manager.transcribe_audio(raw_path, language)
+        if not openai_manager.chat_history:
+            openai_manager.append_system_message(SYSTEM_MESSAGE)
 
-    # Get character response
-    if not openai_manager.chat_history:
-        openai_manager.append_system_message(SYSTEM_MESSAGE)
-
-
-    openai_manager.append_user_message(transcription)
-    response_text = openai_manager.get_chat_response()
-
-    # Synthesize audio
-    output_path = tts_manager.text_to_speech(response_text)
-
-    # Return audio stream
-    return StreamingResponse(open(output_path, "rb"), media_type="audio/mpeg")
-
+        openai_manager.append_user_message(transcription)
+        response_text = openai_manager.get_chat_response()
+        audio_stream = tts_manager.text_to_audio_stream(response_text)
+        return StreamingResponse(audio_stream, media_type="audio/mpeg")
+    finally:
+        try:
+            os.unlink(raw_path)
+        except OSError:
+            pass
 
 build_path = pathlib.Path(__file__).parent.parent / "frontend" / "build"
 app.mount("/", StaticFiles(directory=str(build_path), html=True), name="static")
