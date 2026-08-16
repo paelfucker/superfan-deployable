@@ -66,11 +66,13 @@ async def ask_character(audio_file: UploadFile, language: str = Form("en")):
 
     try:
         transcription = stt_manager.transcribe_audio(raw_path, language)
+        if not transcription:
+            return StreamingResponse(iter([b""]), media_type="audio/mpeg")
+
         if not openai_manager.chat_history:
             openai_manager.append_system_message(SYSTEM_MESSAGE)
 
-        openai_manager.append_user_message(transcription)
-        response_text = openai_manager.get_chat_response()
+        response_text = openai_manager.chat_with_history(transcription)
         audio_stream = tts_manager.text_to_audio_stream(response_text)
         return StreamingResponse(audio_stream, media_type="audio/mpeg")
     finally:
