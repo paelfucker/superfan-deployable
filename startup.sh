@@ -1,3 +1,4 @@
 #!/bin/bash
-source antenv/bin/activate
-exec gunicorn backend.main:app --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 --timeout 300 --chdir backend
+# Used by Azure App Service. Cloud Run uses the Dockerfile instead.
+[ -f antenv/bin/activate ] && source antenv/bin/activate
+exec uvicorn backend.main:app --host 0.0.0.0 --port "${PORT:-8000}"

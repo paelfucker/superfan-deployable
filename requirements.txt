@@ -1,10 +1,5 @@
 fastapi
 uvicorn
-gunicorn
-pydub
-openai
 python-multipart
-aiofiles
-azure-cognitiveservices-speech
-tiktoken
-elevenlabs
+openai>=1.50
+elevenlabs>=1.0
